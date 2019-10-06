@@ -1,14 +1,14 @@
 {
   "name": "depstr",
   "version": "1.0.0",
-  "description": "Mass updates of dependencies",
+  "description": "Bulk linking of packages and bulk updated for dependencies",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "link": "node ./linker.js --l --dev"
+    "link": "node --experimental-modules --no-warnings ./linker.js --l --dev"
   },
   "author": "Lina van der Weg",
   "license": "MIT",

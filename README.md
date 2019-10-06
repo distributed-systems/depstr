@@ -5,44 +5,35 @@ a tool to keep your dependencies and package links up to date
 
 ## Commands
 
-### link -r
+### linker -r --dry-run
 
-links a graph of packages with each other. Each module needs to have a config 
-that defines which modules must be linked. The -r flag tells the command to 
-recursively go through all packages until no links can be found anymore.
+Automatically links packages to local available versions. Which packages are linked 
+is defined in a config file. if the `-r` option is used all linked dependencies will
+also be linked to their dependencies.
 
-The config file defines which packages from the package.json need to be linked.
+***Installation***
+Add an npm script to your package.json
 
+```json
+{
+    "scripts": {
+        "link": "node --experimental-modules --no-warnings ./node_modules/.bin/linker --dev --l"
+    }
+}
+```
+
+***Configfile***
+The config file must reside in the config/depstr directory and have the the name `config.dev.yml`.
+the contents are as follows. Modules can also be selected using wildcards. All modules in the package.json
+are matched against the modules found in this config file. Matches are looked for in the same directory
+as the current package resides in. 
 
 ```yaml
 dependencies:
     - module
-    - module: path/to/module
-    - prefix*
-    - @namespace/module
-    - @namespace/prefix*
-    - @namespace/prefix*: path/to/module/prefix[0]
-
+    - module*
+    - @company/*
 dev-dependencies:
     - module
-    - prefix*
-    - @namespace/module
-    - @namespace/prefix*
 
-```
-
-
-### update-dependency glob expression
-
-Updates dependencies in all packages found using a glob expression. the config
-file defines which packages to update 
-
-
-
-```yaml
-my-config:
-    - module
-    - prefix*
-    - @namespace/module
-    - @namespace/prefix*
 ```

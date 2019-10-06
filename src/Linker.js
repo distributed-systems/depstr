@@ -107,7 +107,16 @@ export default class Linker {
         const packageDependenciesSet = new Set(Object.keys(packageDependencies));
 
         for (const dependency of dependencyList) {
-            if (packageDependenciesSet.has(dependency)) {
+            if (dependency.includes('*')) {
+                const reg = new RegExp(dependency.replace('*', '.*'), 'gi');
+
+                for (const dep of packageDependenciesSet.keys()) {
+                    if (reg.test(dep)) {
+                        dependenciesMap.set(dep, null);
+                    }
+                }
+            }
+            else if (packageDependenciesSet.has(dependency)) {
                 dependenciesMap.set(dependency, null);
             }
         }
