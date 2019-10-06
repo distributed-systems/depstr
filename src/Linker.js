@@ -51,30 +51,32 @@ export default class Linker {
         this.packageJSON = await this.loadPackageJSON(path.join(this.cwd, 'package.json'));
 
 
-        const dependenciesMap = new Map();
+        const dependenciesArray = [];
 
         if (this.config.get('dependencies')) {
-            await this.resolveDependencies(this.config.get('dependencies'), this.packageJSON.dependencies || {}, dependenciesMap);
+            const toBeInstalledDependencies = await this.resolveDependencies(this.config.get('dependencies'), this.packageJSON.dependencies || {});
+            dependenciesArray.push(...toBeInstalledDependencies);
         }
 
         if (this.config.get('dev-dependencies')) {
-            await this.resolveDependencies(this.config.get('dev-dependencies'), this.packageJSON.devDependencies || {}, dependenciesMap);
+             const toBeInstalledDependencies = await this.resolveDependencies(this.config.get('dev-dependencies'), this.packageJSON.devDependencies || {});
+            dependenciesArray.push(...toBeInstalledDependencies);
         }
 
-        const packages = await this.resolvePackages(dependenciesMap);
+        const localPackages = await this.collectLocalPackages();
 
-        for (const packageName of dependenciesMap.keys()) {
-            if (!packages.has(packageName)) {
+        for (const packageName of (new Set(dependenciesArray).keys())) {
+            if (!localPackages.has(packageName)) {
                 throw new Error(`Cannot link package ${packageName} from ${this.cwd}: Package not found in the ${path.join(this.cwd, '../')} directory!`);
             }
 
-            await this.linkDependency(packages.get(packageName));
+            await this.linkDependency(localPackages.get(packageName));
 
             if (!this.linkedDependencies.has(packageName)) {
                 this.linkedDependencies.add(packageName);
 
                 const linker = new Linker({
-                    cwd: packages.get(packageName),
+                    cwd: localPackages.get(packageName),
                     linkedDependencies: this.linkedDependencies,
                     isDryRun: this.isDryRun,
                 });
@@ -87,11 +89,11 @@ export default class Linker {
 
 
 
-    async resolvePackages(dependenciesMap) {
-        const packages = await glob(path.join(this.cwd, '../'), '*/package.json');
+    async collectLocalPackages() {
+        const localPackages = await glob(path.join(this.cwd, '../'), '*/package.json');
         const packageMap = new Map();
 
-        for (const packageName of packages) {
+        for (const packageName of localPackages) {
             const json = await this.loadPackageJSON(packageName);
             packageMap.set(json.name, path.dirname(packageName));
         }
@@ -102,24 +104,35 @@ export default class Linker {
 
 
 
-
-    async resolveDependencies(dependencyList, packageDependencies, dependenciesMap) {
+    /**
+     * checks which dependencies should be linked
+     *
+     * @param      {array}    dependencyList       lsit of to be linked dependencies form the depstr
+     *                                             config file
+     * @param      {object}   packageDependencies  all dependencies that are part of th
+     *                                             epackage.json file
+     */
+    async resolveDependencies(dependencyList, packageDependencies) {
         const packageDependenciesSet = new Set(Object.keys(packageDependencies));
+        const toBeInstalledDependencies = [];
 
         for (const dependency of dependencyList) {
             if (dependency.includes('*')) {
                 const reg = new RegExp(dependency.replace('*', '.*'), 'gi');
 
                 for (const dep of packageDependenciesSet.keys()) {
+                    reg.lastIndex = 0;
                     if (reg.test(dep)) {
-                        dependenciesMap.set(dep, null);
+                        toBeInstalledDependencies.push(dep);
                     }
                 }
-            }
-            else if (packageDependenciesSet.has(dependency)) {
-                dependenciesMap.set(dependency, null);
+            } else if (packageDependenciesSet.has(dependency)) {
+                toBeInstalledDependencies.push(dependency);
             }
         }
+
+
+        return toBeInstalledDependencies;
     }
 
 
