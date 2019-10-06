@@ -5,7 +5,12 @@ a tool to keep your dependencies and package links up to date
 
 ## Commands
 
-### linker -r --dry-run
+
+### update --dry-run --config=rda-service
+
+
+
+### link -r --dry-run
 
 Automatically links packages to local available versions. Which packages are linked 
 is defined in a config file. if the `-r` option is used all linked dependencies will

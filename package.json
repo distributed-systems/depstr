@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "link": "node --experimental-modules --no-warnings ./linker.js --l --dev"
+    "link": "node --experimental-modules --no-warnings ./linker.js --l --dev",
+    "update": "node --experimental-modules --no-warnings ./updater.js --l --dev --group=updateGroup"
   },
   "author": "Lina van der Weg",
   "license": "MIT",

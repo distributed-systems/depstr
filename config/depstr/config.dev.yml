@@ -1,3 +1,13 @@
 dependencies:
     - logd
     - @distributed-systems/*
+
+
+updateGroup:
+    dependencies:
+        - ee-log
+        - b
+
+    packages:
+        - @distributed*
+        - d
