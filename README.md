@@ -12,6 +12,7 @@ is defined in a config file. if the `-r` option is used all linked dependencies 
 also be linked to their dependencies.
 
 ***Installation***
+
 Add an npm script to your package.json
 
 ```json
@@ -23,6 +24,7 @@ Add an npm script to your package.json
 ```
 
 ***Configfile***
+
 The config file must reside in the config/depstr directory and have the the name `config.dev.yml`.
 the contents are as follows. Modules can also be selected using wildcards. All modules in the package.json
 are matched against the modules found in this config file. Matches are looked for in the same directory
