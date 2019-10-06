@@ -1,0 +1,25 @@
+{
+  "name": "depstr",
+  "version": "1.0.0",
+  "description": "Mass updates of dependencies",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "link": "node ./linker.js --l --dev"
+  },
+  "author": "Lina van der Weg",
+  "license": "MIT",
+  "dependencies": {
+    "@distributed-systems/glob": "^2.0.1",
+    "@rainbow-industries/rainbow-config": "^1.0.1",
+    "logd": "^2.3.1",
+    "logd-console-transport": "^1.1.0"
+  },
+  "type": "module",
+  "bin": {
+    "linker": "./linker.js"
+  }
+}
