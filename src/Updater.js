@@ -111,6 +111,7 @@ export default class Updater {
 
 
     async publish(packagePath) {
+        log.info(`Publishing ${packagePath}`);
         await execute(`cd ${packagePath} && npm publish`);
     }
 
@@ -118,6 +119,7 @@ export default class Updater {
 
 
     async updateVersion(packagePath) {
+        log.debug(`Updating version for ${packagePath}`);
         await execute(`cd ${packagePath} && npm version ${this.version}`);
         await execute(`cd ${packagePath} && git push`);
         await execute(`cd ${packagePath} && git push --tags`);
