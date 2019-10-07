@@ -1,6 +1,6 @@
 {
   "name": "depstr",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Bulk linking of packages and bulk updated for dependencies",
   "main": "index.js",
   "directories": {
@@ -21,6 +21,7 @@
   },
   "type": "module",
   "bin": {
-    "linker": "./linker.js"
+    "linker": "./linker.js",
+    "updater": "./updater.js"
   }
 }

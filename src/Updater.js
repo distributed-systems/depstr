@@ -20,12 +20,10 @@ export default class Updater {
         isDryRun = process.argv.includes('--dry-run'),
         cwd,
         version = 'patch',
-        commitMessage = 'chore: update dependencies',
     }) {
         this.cwd = cwd;
         this.isDryRun = isDryRun;
         this.version = version;
-        this.commitMessage = commitMessage;
 
         this.packagesToUpdate = new Set();
         this.dependenciesToUpdate = new Set();
@@ -92,7 +90,7 @@ export default class Updater {
     async updatePackage(packagePath) {
         const hasChanges = await this.hasChanges(packagePath);
         if (hasChanges) {
-            log.warn(`Cannot update ${packagePath}, there are uncommited changes, cannot update`);
+            log.warn(`Cannot update ${packagePath}: there are uncommited changes!`);
             return;
         }
 
@@ -104,9 +102,46 @@ export default class Updater {
         }
 
 
-        
+        await this.updateNPPMPackages(packagePath);
+        await this.updateVersion(packagePath);
+        await this.publish(packagePath);
+    }
+
+
+
+
+    async publish(packagePath) {
+        await execute(`cd ${packagePath} && npm publish`);
+    }
+
+
+
+
+    async updateVersion(packagePath) {
+        await execute(`cd ${packagePath} && npm version ${this.version}`);
+        await execute(`cd ${packagePath} && git push`);
+        await execute(`cd ${packagePath} && git push --tags`);
     }
     
+
+
+
+
+
+    async updateNPPMPackages(packagePath) {
+        log.debug(`Updating dependencies for ${packagePath}`);
+
+        if (!this.isDryRun) {
+            try {
+                await execute(`cd ${packagePath} && rm -r node_modules`);
+            } catch (r) {}
+            
+            await execute(`cd ${packagePath} && npm update`);
+        }
+    }
+
+
+
 
 
 
