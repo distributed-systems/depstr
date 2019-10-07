@@ -19,9 +19,13 @@ export default class Updater {
     constructor({
         isDryRun = process.argv.includes('--dry-run'),
         cwd,
+        version = 'patch',
+        commitMessage = 'chore: update dependencies',
     }) {
         this.cwd = cwd;
         this.isDryRun = isDryRun;
+        this.version = version;
+        this.commitMessage = commitMessage;
 
         this.packagesToUpdate = new Set();
         this.dependenciesToUpdate = new Set();
@@ -85,11 +89,39 @@ export default class Updater {
 
 
 
-    async updatePackage(config) {
+    async updatePackage(packagePath) {
+        const hasChanges = await this.hasChanges(packagePath);
+        if (hasChanges) {
+            log.warn(`Cannot update ${packagePath}, there are uncommited changes, cannot update`);
+            return;
+        }
+
+
+        const branchName = await this.getBranch(packagePath);
+        if (branchName !== 'develop') {
+            log.warn(`Cannot update ${packagePath}, not updating packages in a branch other than develop, current branch is {${branchName}}`);
+            return;
+        }
+
+
         
     }
     
 
+
+
+    async hasChanges(packagePath) {
+        const result = await execute(`cd ${packagePath} && git diff-index --quiet HEAD -- || echo "untracked"`);
+        return result.stdout.trim() === 'untracked';
+    }
+
+
+
+
+    async getBranch(packagePath) {
+        const result = await execute(`cd ${packagePath} && git rev-parse --abbrev-ref HEAD`);
+        return result.stdout.trim();
+    }
 
 
 

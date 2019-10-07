@@ -6,8 +6,6 @@ dependencies:
 updateGroup:
     dependencies:
         - ee-log
-        - b
 
     packages:
-        - @distributed*
-        - d
+        - logd
