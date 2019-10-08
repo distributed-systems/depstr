@@ -119,7 +119,7 @@ export default class Updater {
 
     async updateVersion(packagePath) {
         await execute(`cd ${packagePath} && npm version ${this.version}`);
-        await execute(`cd ${packagePath} && git push`);
+        await execute(`cd ${packagePath} && git push origin develop`);
         await execute(`cd ${packagePath} && git push --tags`);
     }
     
