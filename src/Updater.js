@@ -34,6 +34,7 @@ export default class Updater {
 
 
     async update() {
+        log.info('Staritng updater');
         await this.loadConfig();
         const localPackageMap = await this.collectLocalPackages();
         const packagesToUpdate = new Set();
@@ -77,9 +78,12 @@ export default class Updater {
         }
 
 
+        log.info(`Found ${packagesToUpdate.size} packages: starting update`);
         for (const config of packagesToUpdate) {
             await this.updatePackage(config.path);
         }
+
+        log.success(`Package update finished`);
     }
 
 
@@ -88,6 +92,7 @@ export default class Updater {
 
 
     async updatePackage(packagePath) {
+        log.info(`Updating dependencies for package ${packagePath}`);
         const hasChanges = await this.hasChanges(packagePath);
         if (hasChanges) {
             log.warn(`Cannot update ${packagePath}: there are uncommited changes!`);
@@ -102,23 +107,36 @@ export default class Updater {
         }
 
 
-        await this.updateNPPMPackages(packagePath);
-        await this.updateVersion(packagePath);
-        await this.publish(packagePath);
+        const hasUpdates = await this.updateNPPMPackages(packagePath);
+        if (hasUpdates) {
+            await this.updateVersion(packagePath);
+            await this.publish(packagePath);
+        } else {
+            log.debug(`Nothign to update for package ${packagePath}`);
+        }
     }
 
 
 
 
     async publish(packagePath) {
-        await execute(`cd ${packagePath} && npm publish`);
+        if (this.isDryRun) return;
+        if (!process.argv.includes('--no-publish')) {
+            log.info(`Publishing package ${packagePath}`);
+            await execute(`cd ${packagePath} && npm publish`);
+        }
     }
 
 
 
 
     async updateVersion(packagePath) {
+        if (this.isDryRun) return;
+
+        log.debug(`Increasing version of package`);
         await execute(`cd ${packagePath} && npm version ${this.version}`);
+
+        log.debug('Pushing tags and commits to origin');
         await execute(`cd ${packagePath} && git push origin develop`);
         await execute(`cd ${packagePath} && git push --tags`);
     }
@@ -129,14 +147,29 @@ export default class Updater {
 
 
     async updateNPPMPackages(packagePath) {
-        log.debug(`Updating dependencies for ${packagePath}`);
-
         if (!this.isDryRun) {
+
+            log.debug('Pulling from origin');
+            await execute(`cd ${packagePath} && git pull origin develop`);
+
+
+            log.debug(`Updating dependencies for ${packagePath}`);
+
             try {
                 await execute(`cd ${packagePath} && rm -r node_modules`);
             } catch (r) {}
             
             await execute(`cd ${packagePath} && npm update`);
+
+            const hasChanges = await this.hasChanges(packagePath);
+
+
+            if (hasChanges) {
+                log.debug('Committing package updates ...');
+                await execute(`cd ${packagePath} && git commit -am "chore: (depstr) update dependencies"`);
+            }
+
+            return hasChanges;
         }
     }
 
